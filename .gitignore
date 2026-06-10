@@ -1,0 +1,28 @@
+# Dépendances
+node_modules
+
+# Build
+dist
+dist-ssr
+*.local
+
+# Env — NE JAMAIS COMMITTER
+.env
+.env.local
+.env.*.local
+
+# Vite
+.vite
+
+# Supabase (local)
+supabase/.branches
+supabase/.temp
+
+# Tests (à venir)
+coverage
+
+# OS / éditeur
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+*.log
