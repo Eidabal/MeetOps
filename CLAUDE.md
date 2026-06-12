@@ -25,7 +25,7 @@ Il transforme automatiquement des transcriptions de réunions en comptes rendus 
 | Analytics KPIs & Tendances | ✅ |
 | Persistance Supabase | 🔧 hook `useMeetings` + migration produits, intégration `App.jsx` à finaliser |
 | Auth & multi-tenant | 🔲 |
-| Appels IA côté serveur (Edge Functions) | 🔲 appel direct client (sandbox only) ; ⚠️ `Memory.jsx` contient encore un `fetch` orphelin qui contourne `lib/anthropic.js` |
+| Appels IA côté serveur (Edge Functions) | 🔲 appel direct client (sandbox only) — tous les appels passent désormais par `lib/anthropic.js`, prêt à brancher sur une Edge Function |
 | Migration Tailwind | 🔧 Tailwind configuré (tokens `C` mappés dans le thème) ; shell + page Meetings convertis, ~664/708 blocs inline restants |
 | Transcription audio réelle (Whisper) | 🔲 |
 | Export Word / Jira / Teams | 🔲 |
@@ -264,7 +264,7 @@ Client reçoit les chunks et affiche le JSON en live
 ```
 
 > ⚠️ **État actuel** : l'appel part directement du client vers `api.anthropic.com` (fonctionne uniquement dans le bac à sable d'artifact). `lib/anthropic.js` (`callClaude` / `streamClaude`) est le point de centralisation prévu — c'est là qu'on branchera l'edge function.
-> ⚠️ **Déviation connue à corriger** : `Memory.jsx` contient encore un `fetch` Anthropic inline qui contourne le helper. La centralisation n'est donc **pas** complète. À rapatrier dans `lib/anthropic.js` (voir « Priorités actuelles »). Ne pas en introduire de nouveaux ailleurs.
+> ✅ **Centralisation complète** : tous les appels Anthropic (`useAnalysis` via `streamClaude`, `NextStepsPanel` et `Memory.jsx` via `callClaude`) passent par `lib/anthropic.js`. C'est le point unique où brancher l'Edge Function. Ne **jamais** réintroduire de `fetch` Anthropic inline ailleurs.
 
 ### Modèle utilisé
 
@@ -401,7 +401,7 @@ handleMeetingResult(result)
 
 - ❌ Exposer `ANTHROPIC_API_KEY` côté client (pas de `VITE_ANTHROPIC_API_KEY`)
 - ❌ Écrire des prompts inline dans les composants — tout dans `prompts.js`
-- ❌ Réintroduire un `fetch` Anthropic ailleurs que dans `lib/anthropic.js` (⚠️ déviation existante à corriger : `Memory.jsx`)
+- ❌ Réintroduire un `fetch` Anthropic ailleurs que dans `lib/anthropic.js`
 - ❌ Faire des appels Supabase directement dans les composants — passer par les hooks
 - ❌ Committer `.env.local` ou une clé
 - ❌ Changer le modèle Claude sans validation — toujours `claude-sonnet-4-20250514`
@@ -443,15 +443,13 @@ Les next steps IA et le focus du CR sont toujours filtrés par ce rôle.
 
 ## Priorités actuelles (prochaines sessions)
 
-1. **Rapatrier le `fetch` orphelin de `Memory.jsx`** dans `lib/anthropic.js` (~5 min) — préalable à la centralisation complète
-2. **Finaliser la persistance** — câbler `useMeetings` dans `App.jsx`, recharger les réunions + CRs au login
-3. **Edge Functions** — déplacer les appels Anthropic côté serveur (brancher `lib/anthropic.js` sur `analyze-meeting`)
-4. **Auth Supabase** — login / signup, sessions persistantes, hook `useAuth`
-5. **Poursuivre la migration Tailwind** — convertir les pages restantes (ordre suggéré : Dashboard → CR → Onboarding, puis Upload, Analytics, Memory) ; sans risque, peut se faire en parallèle
-6. **Setup Git** — init du repo + `.gitignore` complet (React + Vite + Supabase)
-7. **Whisper** — vraie transcription audio via edge function
-8. **Export Word** — `.docx` téléchargeable depuis le CR
-9. **Export Jira** — créer des tickets depuis les actions du CR
+1. **Finaliser la persistance** — câbler `useMeetings` dans `App.jsx`, recharger les réunions + CRs au login
+2. **Edge Functions** — déplacer les appels Anthropic côté serveur (brancher `lib/anthropic.js` sur `analyze-meeting`)
+3. **Auth Supabase** — login / signup, sessions persistantes, hook `useAuth`
+4. **Poursuivre la migration Tailwind** — convertir les pages restantes (ordre suggéré : Dashboard → CR → Onboarding, puis Upload, Analytics, Memory) ; sans risque, peut se faire en parallèle
+5. **Whisper** — vraie transcription audio via edge function
+6. **Export Word** — `.docx` téléchargeable depuis le CR
+7. **Export Jira** — créer des tickets depuis les actions du CR
 
 ---
 
