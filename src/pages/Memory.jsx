@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { C, ROLES } from "../lib/constants";
+import { callClaude } from "../lib/anthropic";
 import { Topbar } from "../components/layout/Topbar";
 import { MemoryGraph } from "../components/memory/MemoryGraph";
 import { MEMORY_MEETINGS, MEMORY_LINKS, MEMORY_AI_PROMPT } from "../features/memory/memoryLinks";
@@ -16,15 +17,10 @@ export function PageMemory({ setPage, role }) {
   useEffect(() => {
     let cancelled = false;
     setAiLoading(true);
-    fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1200, messages:[{role:"user",content:MEMORY_AI_PROMPT}] })
-    })
-    .then(r=>r.json())
-    .then(data=>{
+    callClaude({ prompt: MEMORY_AI_PROMPT, maxTokens: 1200 })
+    .then(raw=>{
       if (cancelled) return;
-      const raw = data.content?.[0]?.text||"{}";
-      const clean = raw.replace(/```json|```/g,"").trim();
+      const clean = (raw||"{}").replace(/```json|```/g,"").trim();
       try { setAiReport(JSON.parse(clean)); }
       catch { const m=clean.match(/\{[\s\S]*\}/); if(m) try{setAiReport(JSON.parse(m[0]));}catch{} }
     })
