@@ -369,6 +369,7 @@ handleMeetingResult(result)
 
 ## Workflow Git
 
+- Remote : `origin` → https://github.com/Eidabal/MeetOps (branche par défaut `main`).
 - `main` = branche stable, toujours buildable. Travailler sur des branches `feat/...`, `fix/...`, `refactor/...`.
 - **Commits conventionnels** : `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
   - ex. `feat: persistance Supabase meetings (hook useMeetings + migration SQL)`
